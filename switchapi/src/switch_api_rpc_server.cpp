@@ -2369,7 +2369,7 @@ class switch_api_rpcHandler : virtual public switch_api_rpcIf {
 };
 
 static void *api_rpc_server_thread(void *args) {
-  int port = SWITCH_API_RPC_SERVER_PORT;
+  int port = *((int *)args);
   shared_ptr<switch_api_rpcHandler> handler(new switch_api_rpcHandler());
   shared_ptr<TProcessor> processor(new switch_api_rpcProcessor(handler));
   shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
@@ -2386,15 +2386,13 @@ static void *api_rpc_server_thread(void *args) {
 static pthread_t api_rpc_thread;
 
 extern "C" {
-        int start_switch_api_rpc_server(void)
-        {
-                std::cerr << "Starting API RPC server on port " <<
-                        SWITCH_API_RPC_SERVER_PORT << std::endl;
+  int api_rpc_port = SWITCH_API_RPC_SERVER_PORT;
+  int start_switch_api_rpc_server(void) {
+    std::cerr << "Starting API RPC server on port " << api_rpc_port << std::endl;
 
-                return pthread_create(&api_rpc_thread, NULL, api_rpc_server_thread, NULL);
-        }
-        int start_switch_api_rpc_server0(char *)
-        {
-            return start_switch_api_rpc_server();
-        }
+    return pthread_create(&api_rpc_thread, NULL, api_rpc_server_thread, &api_rpc_port);
+  }
+  int start_switch_api_rpc_server0(char *) {
+      return start_switch_api_rpc_server();
+  }
 }
