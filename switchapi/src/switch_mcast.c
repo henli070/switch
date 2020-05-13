@@ -791,8 +791,8 @@ switch_status_t switch_api_multicast_member_delete(
       JLD(status, rid_array, rid);
       switch_free(rid_info);
     }
-
     status = switch_mcast_update_port_map(mcast_node, intf_handle, FALSE);
+    status = switch_pd_mcast_update_entry(device, mcast_node);
     delete_mcast_node = switch_mcast_node_empty(mcast_node);
     if (delete_mcast_node) {
       status = switch_pd_mcast_mgid_table_delete_entry(
