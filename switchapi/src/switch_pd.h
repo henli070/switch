@@ -81,7 +81,8 @@ p4_pd_status_t switch_pd_smac_table_add_entry(
     switch_device_t device,
     switch_api_mac_entry_t *mac_entry,
     switch_interface_info_t *intf_info,
-    p4_pd_entry_hdl_t *entry_hdl);
+    p4_pd_entry_hdl_t *entry_hdl,
+    uint32_t aging_time);
 
 p4_pd_status_t switch_pd_smac_table_update_entry(
     switch_device_t device,

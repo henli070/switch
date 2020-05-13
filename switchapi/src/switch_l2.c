@@ -406,7 +406,7 @@ switch_api_mac_entry_t *switch_mac_aging_poll_entries(switch_device_t device) {
   while (temp) {
     entry_hdl = (p4_pd_entry_hdl_t)h;
 #ifndef P4_L2_DISABLE
-    status = p4_pd_dc_dmac_get_hit_state(sess_hdl, entry_hdl, &hit_state);
+    status = p4_pd_dc_smac_get_hit_state(sess_hdl, entry_hdl, &hit_state);
 #endif /* P4_L2_DISABLE */
     if (!status) {
       SWITCH_API_ERROR("%s:%d: failed to get hit state for entry %x",
@@ -437,7 +437,7 @@ switch_status_t switch_mac_table_init(switch_device_t device) {
 #ifndef P4_L2_DISABLE
   p4_pd_dc_mac_learn_digest_register(
       sess_hdl, (uint8_t)device, switch_mac_learn_notify_cb, NULL);
-  p4_pd_dc_dmac_enable_entry_timeout(
+  p4_pd_dc_smac_enable_entry_timeout(
       sess_hdl, switch_mac_aging_notify_cb, mac_params.aging_time, NULL);
 #endif /* P4_L2_DISABLE */
 #endif
@@ -621,7 +621,7 @@ switch_status_t switch_api_mac_table_entry_add(
   // Do not learn multicast macs on smac table
   if (!mgid_index && SWITCH_LN_LEARN_ENABLED(bd_info)) {
     status = switch_pd_smac_table_add_entry(
-        device, mac_entry, intf_info, &mac_info->smac_entry);
+        device, mac_entry, intf_info, &mac_info->smac_entry, aging_time);
   }
   if (status != SWITCH_STATUS_SUCCESS) {
     goto cleanup;

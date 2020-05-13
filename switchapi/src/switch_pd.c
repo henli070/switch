@@ -70,7 +70,6 @@ p4_pd_status_t switch_pd_dmac_table_add_entry(
                                                                p4_pd_device,
                                                                &match_spec,
                                                                &action_spec,
-                                                               aging_time,
                                                                entry_hdl);
     } else {
       switch (SWITCH_INTF_TYPE(intf_info)) {
@@ -84,7 +83,6 @@ p4_pd_status_t switch_pd_dmac_table_add_entry(
                                                          p4_pd_device,
                                                          &match_spec,
                                                          &hit_action_spec,
-                                                         aging_time,
                                                          entry_hdl);
         } break;
         case SWITCH_API_INTERFACE_TUNNEL: {
@@ -98,7 +96,6 @@ p4_pd_status_t switch_pd_dmac_table_add_entry(
               p4_pd_device,
               &match_spec,
               &nhop_action_spec,
-              aging_time,
               entry_hdl);
         } break;
         default:
@@ -108,7 +105,7 @@ p4_pd_status_t switch_pd_dmac_table_add_entry(
     }
   } else {
     status = p4_pd_dc_dmac_table_add_with_dmac_drop(
-        g_sess_hdl, p4_pd_device, &match_spec, aging_time, entry_hdl);
+        g_sess_hdl, p4_pd_device, &match_spec, entry_hdl);
   }
 #endif /* P4_L2_DISABLE */
   p4_pd_complete_operations(g_sess_hdl);
@@ -175,7 +172,8 @@ p4_pd_status_t switch_pd_smac_table_add_entry(
     switch_device_t device,
     switch_api_mac_entry_t *mac_entry,
     switch_interface_info_t *intf_info,
-    p4_pd_entry_hdl_t *entry_hdl) {
+    p4_pd_entry_hdl_t *entry_hdl,
+    uint32_t aging_time) {
   p4_pd_status_t status = 0;
 #ifndef P4_L2_DISABLE
   p4_pd_dc_smac_match_spec_t match_spec;
@@ -194,7 +192,7 @@ p4_pd_status_t switch_pd_smac_table_add_entry(
   action_spec.action_ifindex = intf_info->ifindex;
 
   status = p4_pd_dc_smac_table_add_with_smac_hit(
-      g_sess_hdl, p4_pd_device, &match_spec, &action_spec, entry_hdl);
+      g_sess_hdl, p4_pd_device, &match_spec, &action_spec, aging_time, entry_hdl);
 #endif /* P4_L2_DISABLE */
   p4_pd_complete_operations(g_sess_hdl);
   return status;
