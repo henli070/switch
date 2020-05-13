@@ -52,7 +52,8 @@ switch_stp_info_t *switch_api_stp_get_internal(switch_handle_t stp_handle);
 switch_status_t switch_stp_update_flood_list(switch_device_t device,
                                              switch_handle_t stg_handle,
                                              switch_handle_t intf_handle,
-                                             switch_stp_state_t state);
+                                             switch_stp_state_t state,
+                                             switch_stp_state_t prev_state);
 
 #ifdef __cplusplus
 }

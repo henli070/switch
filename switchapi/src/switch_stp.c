@@ -256,10 +256,12 @@ switch_status_t switch_api_stp_port_state_set(switch_device_t device,
     return SWITCH_STATUS_INVALID_INTERFACE;
   }
 
+  switch_stp_state_t prev_state = SWITCH_PORT_STP_STATE_NONE;
   node = tommy_list_head(&stp_info->port_list);
   while (node) {
     port_entry = node->data;
     if (port_entry->intf_handle == intf_handle) {
+      prev_state = port_entry->intf_state;
       port_entry->intf_state = state;
       break;
     }
@@ -270,8 +272,7 @@ switch_status_t switch_api_stp_port_state_set(switch_device_t device,
     if (!node) {
       return SWITCH_STATUS_ITEM_NOT_FOUND;
     }
-    status =
-        switch_stp_update_flood_list(device, stg_handle, intf_handle, state);
+    status = switch_stp_update_flood_list(device, stg_handle, intf_handle, state, prev_state);
     status = switch_pd_spanning_tree_table_delete_entry(device,
                                                         port_entry->hw_entry);
     tommy_list_remove_existing(&(stp_info->port_list), &(port_entry->node));
@@ -291,7 +292,7 @@ switch_status_t switch_api_stp_port_state_set(switch_device_t device,
     }
 
     status =
-        switch_stp_update_flood_list(device, stg_handle, intf_handle, state);
+        switch_stp_update_flood_list(device, stg_handle, intf_handle, state, prev_state);
 
     if (new_entry) {
       status = switch_pd_spanning_tree_table_add_entry(device,
@@ -441,7 +442,8 @@ switch_status_t switch_api_stp_port_state_clear(switch_device_t device,
 switch_status_t switch_stp_update_flood_list(switch_device_t device,
                                              switch_handle_t stg_handle,
                                              switch_handle_t intf_handle,
-                                             switch_stp_state_t state) {
+                                             switch_stp_state_t state,
+                                             switch_stp_state_t prev_state) {
   switch_stp_info_t *stp_info = NULL;
   switch_bd_info_t *bd_info = NULL;
   switch_stp_vlan_entry_t *vlan_entry = NULL;
@@ -473,15 +475,17 @@ switch_status_t switch_stp_update_flood_list(switch_device_t device,
     vlan_intf.intf_handle = intf_handle;
     switch (state) {
       case SWITCH_PORT_STP_STATE_FORWARDING:
-        status = switch_api_multicast_member_add(
-            device, bd_info->uuc_mc_index, 1, &vlan_intf);
-        break;
-      case SWITCH_PORT_STP_STATE_BLOCKING:
       case SWITCH_PORT_STP_STATE_NONE:
-        status = switch_api_multicast_member_delete(
-            device, bd_info->uuc_mc_index, 1, &vlan_intf);
+        if (prev_state != SWITCH_PORT_STP_STATE_FORWARDING && prev_state != SWITCH_PORT_STP_STATE_NONE) {
+          status = switch_api_multicast_member_add(device, bd_info->uuc_mc_index, 1, &vlan_intf);
+        }
         break;
-
+      case SWITCH_PORT_STP_STATE_LEARNING:
+      case SWITCH_PORT_STP_STATE_BLOCKING:
+        if (prev_state != SWITCH_PORT_STP_STATE_LEARNING && prev_state != SWITCH_PORT_STP_STATE_BLOCKING) {
+          status = switch_api_multicast_member_delete(device, bd_info->uuc_mc_index, 1, &vlan_intf);
+        }
+        break;
       default:
         break;
     }
